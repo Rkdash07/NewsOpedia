@@ -10,11 +10,11 @@ function NewsBoard({ category }) {
         setLoading(true)
         setError(null)
         
-        // Use environment variable if available, otherwise fallback (for development)
-        const apiKey = import.meta.env.VITE_NEWS_API_KEY || '03c61b6d8941404c9fef010bdf01f892'
-        const url = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${apiKey}`
+        // Use proxy API endpoint (Vercel serverless function)
+        // This keeps the API key secure on the server-side
+        const apiUrl = `/api/news?category=${category}`
         
-        fetch(url)
+        fetch(fetchUrl)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`)
@@ -57,7 +57,7 @@ function NewsBoard({ category }) {
                 <div className="alert alert-warning text-center mx-auto" style={{ maxWidth: '600px', marginTop: '20px' }}>
                     <strong>⚠️ {error}</strong>
                     <p className="mb-0 mt-2 small">
-                        Note: NewsAPI requires server-side API key usage. For production, consider using a backend proxy.
+                        Please check that the API proxy is configured correctly.
                     </p>
                 </div>
             )}
