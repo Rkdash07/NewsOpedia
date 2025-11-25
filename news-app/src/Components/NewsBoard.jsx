@@ -1,21 +1,92 @@
-import React, { useState,useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import NewsItems from './NewsItems.jsx'
-function NewsBoard({category}) {
 
-    const [articles,setArticles] = useState([''])
+function NewsBoard({ category }) {
+    const [articles, setArticles] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
 
-    useEffect(()=>{
-        let url =`https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=03c61b6d8941404c9fef010bdf01f892`;
-        fetch(url).then(response=>response.json()).then(data=>setArticles(data.articles)).catch(err=>console.log(err))
-    },[category])
-  return (
-    <div>
-         <h2 className='text-center'>Latest <span>News</span></h2>
-    {articles.map((news,index)=>{
-      return <NewsItems key={index} title={news.title} description={news.description} src={news.urlToImage} newsUrl={news.url}/>
-    })}
-    </div>
-  )
+    useEffect(() => {
+        setLoading(true)
+        setError(null)
+        
+        // Use environment variable if available, otherwise fallback (for development)
+        const apiKey = import.meta.env.VITE_NEWS_API_KEY || '03c61b6d8941404c9fef010bdf01f892'
+        const url = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${apiKey}`
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`)
+                }
+                return response.json()
+            })
+            .then(data => {
+                // Check if data.articles exists and is an array
+                if (data && Array.isArray(data.articles)) {
+                    setArticles(data.articles)
+                } else {
+                    setArticles([])
+                    setError('No articles found')
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching news:', err)
+                setError('Failed to load news. Please try again later.')
+                setArticles([])
+            })
+            .finally(() => {
+                setLoading(false)
+            })
+    }, [category])
+
+    return (
+        <div>
+            <h2 className='text-center'>Latest <span>News</span></h2>
+            
+            {loading && (
+                <div className="text-center my-5">
+                    <div className="spinner-border text-danger" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading news...</p>
+                </div>
+            )}
+            
+            {error && !loading && (
+                <div className="alert alert-warning text-center mx-auto" style={{ maxWidth: '600px', marginTop: '20px' }}>
+                    <strong>⚠️ {error}</strong>
+                    <p className="mb-0 mt-2 small">
+                        Note: NewsAPI requires server-side API key usage. For production, consider using a backend proxy.
+                    </p>
+                </div>
+            )}
+            
+            {!loading && !error && articles.length === 0 && (
+                <div className="text-center my-5">
+                    <p>No news articles available at the moment.</p>
+                </div>
+            )}
+            
+            {!loading && !error && articles.length > 0 && (
+                <div>
+                    {articles.map((news, index) => {
+                        // Only render if news object exists and has required properties
+                        if (!news || !news.title) return null
+                        return (
+                            <NewsItems 
+                                key={index} 
+                                title={news.title} 
+                                description={news.description} 
+                                src={news.urlToImage} 
+                                newsUrl={news.url}
+                            />
+                        )
+                    })}
+                </div>
+            )}
+        </div>
+    )
 }
 
 export default NewsBoard
