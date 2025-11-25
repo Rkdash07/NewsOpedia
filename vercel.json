@@ -1,8 +1,7 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "rootDirectory": "news-app"
+  "buildCommand": "cd news-app && npm install && npm run build",
+  "outputDirectory": "news-app/dist",
+  "installCommand": "cd news-app && npm install",
+  "framework": "vite"
 }
 
